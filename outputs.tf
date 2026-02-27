@@ -1,22 +1,29 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
+output "cluster_name" {
+  description = "EKS cluster name"
+  value       = module.eks.cluster_name
+}
 
 output "cluster_endpoint" {
-  description = "Endpoint for EKS control plane"
+  description = "EKS cluster endpoint"
   value       = module.eks.cluster_endpoint
 }
 
-output "cluster_security_group_id" {
-  description = "Security group ids attached to the cluster control plane"
-  value       = module.eks.cluster_security_group_id
+output "oidc_provider_url" {
+  description = "OIDC provider URL used by the EKS cluster"
+  value       = module.eks.oidc_provider
 }
 
-output "region" {
-  description = "AWS region"
-  value       = var.region
+output "cloudwatch_observability_role_arn" {
+  description = "IAM Role ARN used by the CloudWatch Observability add-on via Pod Identity"
+  value       = aws_iam_role.cw_observability.arn
 }
 
-output "cluster_name" {
-  description = "Kubernetes Cluster Name"
-  value       = module.eks.cluster_name
+output "cloudwatch_service_account" {
+  description = "Service account name for CloudWatch Agent"
+  value       = kubernetes_service_account.cloudwatch_agent.metadata[0].name
+}
+
+output "cloudwatch_namespace" {
+  description = "Namespace used for CloudWatch Agent"
+  value       = kubernetes_namespace.amazon_cloudwatch.metadata[0].name
 }

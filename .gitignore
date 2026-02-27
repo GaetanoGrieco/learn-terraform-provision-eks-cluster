@@ -1,35 +1,39 @@
 # =====================================================================
-# Terraform directories created during init/apply
+# Terraform working directories
 # =====================================================================
-**/.terraform/
+.terraform/
 **/.terraform/*
 
 # =====================================================================
-# Terraform state files (mai versionarli, contengono dati sensibili)
+# Terraform state files (never commit these)
 # =====================================================================
+terraform.tfstate
+terraform.tfstate.*
 *.tfstate
 *.tfstate.*
+
+# Plans (opzionale: ignorare i file .tfplan)
 *.tfplan
 
 # =====================================================================
-# Terraform lock file (ignoralo se non vuoi versionarlo)
-# Se vuoi mantenerlo nel repo, commenta la riga sotto
+# Terraform lock file
+# Comment this line if you want to commit the lockfile for consistency
 # =====================================================================
 .terraform.lock.hcl
 
 # =====================================================================
-# Variabili (contengono credenziali e dati sensibili)
+# Sensitive variables (NEVER commit .tfvars)
 # =====================================================================
 *.tfvars
 *.tfvars.json
 
 # =====================================================================
-# Crash log
+# Crash logs
 # =====================================================================
 crash.log
 
 # =====================================================================
-# Override files locali
+# Local override files
 # =====================================================================
 override.tf
 override.tf.json
@@ -37,12 +41,25 @@ override.tf.json
 *_override.tf.json
 
 # =====================================================================
-# CLI config files
+# Terraform CLI config files
 # =====================================================================
 .terraformrc
 terraform.rc
 
 # =====================================================================
-# Se hai cartelle generate (come quella vecchia del tuo progetto)
+# System / OS generated files
+# =====================================================================
+.DS_Store
+Thumbs.db
+
+# =====================================================================
+# IDE / editor folders
+# =====================================================================
+.vscode/
+.idea/
+
+# =====================================================================
+# Project-specific temporary folders
 # =====================================================================
 eks-easy-config/
+VODAFONE-TERRAFORM/
