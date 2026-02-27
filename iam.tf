@@ -1,37 +1,30 @@
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# Ruolo IAM per l’add-on Amazon CloudWatch Observability via EKS Pod Identity
-resource "aws_iam_role" "cw_observability" {
-  name = "AmazonEKSPodIdentityAmazonCloudWatchObservabilityRole-${module.eks.cluster_name}"
+locals {
+  cw_role_name = "EKS-PodId-CWObs-${module.eks.cluster_name}"
+}
 
+resource "aws_iam_role" "cw_observability" {
+  name = substr(local.cw_role_name, 0, 64)
+
+  # TRUST POLICY EKS POD IDENTITY: entrambe le azioni sono necessarie
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
-      Action = "sts:AssumeRole",
-      Principal = { Service = "pods.eks.amazonaws.com" }, # <- Pod Identity (NON OIDC/IRSA)
-      Condition = {
-        StringEquals = {
-          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
-        },
-        ArnLike = {
-          # Restringe al tuo cluster EKS
-          "aws:SourceArn" = "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:cluster/${module.eks.cluster_name}"
-        }
-      }
+      Sid       = "AllowEksAuthToAssumeRoleForPodIdentity",
+      Effect    = "Allow",
+      Principal = { Service = "pods.eks.amazonaws.com" },
+      Action = [
+        "sts:AssumeRole",
+        "sts:TagSession"
+      ]
     }]
   })
 }
 
-# Policy consigliata da AWS per l’osservabilità del cluster
 resource "aws_iam_role_policy_attachment" "cw_observability_policy" {
-  role       = aws_iam_role.cw_observability.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSCloudWatchObservability"
+  role = aws_iam_role.cw_observability.name
+  # In sandbox questa è la policy disponibile e sufficiente
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
-
-# In alternativa (più permissiva, se ti serve anche CW Agent classico):
-# resource "aws_iam_role_policy_attachment" "cw_agent_server_policy" {
-#   role       = aws_iam_role.cw_observability.name
-#   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-# }

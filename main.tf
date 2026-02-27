@@ -1,12 +1,18 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+############################################
+# Provider AWS (usa var.region = us-east-1)
+############################################
 provider "aws" {
   region = var.region
 }
 
-# Filter out local zones, which are not currently supported 
-# with managed node groups
+############################################
+# Dati di supporto
+############################################
+
+# Filtra le AZ (no local zones)
 data "aws_availability_zones" "available" {
   filter {
     name   = "opt-in-status"
@@ -14,6 +20,9 @@ data "aws_availability_zones" "available" {
   }
 }
 
+############################################
+# Naming cluster
+############################################
 locals {
   cluster_name = "education-eks-${random_string.suffix.result}"
 }
@@ -23,6 +32,9 @@ resource "random_string" "suffix" {
   special = false
 }
 
+############################################
+# VPC
+############################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.8.1"
@@ -48,6 +60,9 @@ module "vpc" {
   }
 }
 
+############################################
+# EKS
+############################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
@@ -58,6 +73,7 @@ module "eks" {
   cluster_endpoint_public_access           = true
   enable_cluster_creator_admin_permissions = true
 
+  # Manteniamo l'addon EBS CSI gestito dal modulo (IRSA)
   cluster_addons = {
     aws-ebs-csi-driver = {
       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
@@ -69,7 +85,6 @@ module "eks" {
 
   eks_managed_node_group_defaults = {
     ami_type = "AL2023_x86_64_STANDARD"
-
   }
 
   eks_managed_node_groups = {
@@ -95,8 +110,10 @@ module "eks" {
   }
 }
 
-
-# https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/ 
+############################################
+# IAM Policy per EBS CSI (IRSA)
+############################################
+# https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
@@ -110,4 +127,32 @@ module "irsa-ebs-csi" {
   provider_url                  = module.eks.oidc_provider
   role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+}
+
+############################################
+# Provider KUBERNETES (deve stare DOPO il modulo EKS)
+############################################
+# Token per autenticarsi al cluster
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks.cluster_name
+}
+
+# Configurazione provider Kubernetes usando endpoint/CA/token del cluster appena creato
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.this.token
+}
+
+############################################
+# Wait finché il cluster non è ACTIVE
+############################################
+# Evita che le risorse Kubernetes partano mentre l'API Server è ancora avviandosi
+resource "null_resource" "wait_for_eks_active" {
+  depends_on = [module.eks]
+
+  provisioner "local-exec" {
+    # Richiede la AWS CLI disponibile nella sandbox
+    command = "aws eks wait cluster-active --name ${module.eks.cluster_name} --region ${var.region}"
+  }
 }
