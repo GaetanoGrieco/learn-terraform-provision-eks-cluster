@@ -1,27 +1,48 @@
-# Local .terraform directories
+# =====================================================================
+# Terraform directories created during init/apply
+# =====================================================================
+**/.terraform/
 **/.terraform/*
 
-# .tfstate files
+# =====================================================================
+# Terraform state files (mai versionarli, contengono dati sensibili)
+# =====================================================================
 *.tfstate
 *.tfstate.*
 *.tfplan
 
-# Crash log files
+# =====================================================================
+# Terraform lock file (ignoralo se non vuoi versionarlo)
+# Se vuoi mantenerlo nel repo, commenta la riga sotto
+# =====================================================================
+.terraform.lock.hcl
+
+# =====================================================================
+# Variabili (contengono credenziali e dati sensibili)
+# =====================================================================
+*.tfvars
+*.tfvars.json
+
+# =====================================================================
+# Crash log
+# =====================================================================
 crash.log
 
-# Exclude all .tfvars files, which are likely to contain sentitive data, such as
-# password, private keys, and other secrets. These should not be part of version
-# control as they are data points which are potentially sensitive and subject
-# to change depending on the environment.
-*.tfvars
-
-# Ignore override files as they are usually used to override resources locally and so
-# are not checked in
+# =====================================================================
+# Override files locali
+# =====================================================================
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Ignore CLI configuration files
+# =====================================================================
+# CLI config files
+# =====================================================================
 .terraformrc
 terraform.rc
+
+# =====================================================================
+# Se hai cartelle generate (come quella vecchia del tuo progetto)
+# =====================================================================
+eks-easy-config/
