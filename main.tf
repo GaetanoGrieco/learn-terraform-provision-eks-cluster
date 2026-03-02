@@ -156,3 +156,11 @@ resource "null_resource" "wait_for_eks_active" {
     command = "aws eks wait cluster-active --name ${module.eks.cluster_name} --region ${var.region}"
   }
 }
+
+resource "null_resource" "update_kubeconfig" {
+  depends_on = [null_resource.wait_for_eks_active]
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.region}"
+  }
+}
