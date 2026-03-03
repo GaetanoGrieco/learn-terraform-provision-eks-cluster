@@ -22,4 +22,3 @@ terraform apply -auto-approve
 
 echo ""
 echo "🎉 Terraform è pronto!"
-echo "Ora puoi eseguire: ./deploy.sh"
