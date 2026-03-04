@@ -28,3 +28,27 @@ resource "aws_iam_role_policy_attachment" "ng_two_cloudwatch" {
   role       = module.eks.eks_managed_node_groups["two"].iam_role_name
   policy_arn = aws_iam_policy.cw_nodegroup.arn
 }
+
+############################################
+# Aggiunta permessi SSM e CloudWatchAgent ai Node Groups
+############################################
+
+resource "aws_iam_role_policy_attachment" "ng_one_ssm_managed" {
+  role       = module.eks.eks_managed_node_groups["one"].iam_role_name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "ng_two_ssm_managed" {
+  role       = module.eks.eks_managed_node_groups["two"].iam_role_name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "ng_one_cloudwatch_agent" {
+  role       = module.eks.eks_managed_node_groups["one"].iam_role_name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ng_two_cloudwatch_agent" {
+  role       = module.eks.eks_managed_node_groups["two"].iam_role_name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
