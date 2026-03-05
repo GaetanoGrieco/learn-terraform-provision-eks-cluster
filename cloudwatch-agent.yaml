@@ -1,0 +1,48 @@
+apiVersion: cloudwatch.aws.amazon.com/v1alpha1
+kind: AmazonCloudWatchAgent
+metadata:
+  name: cloudwatch-agent
+  namespace: amazon-cloudwatch
+spec:
+  # Tutta la config dell'agent deve stare qui come STRINGA JSON
+  config: |
+    {
+      "agent": {
+        "region": "us-east-1",
+        "metrics_collection_interval": 60,
+        "omit_hostname": true
+      },
+      "logs": {
+        "metrics_collected": {
+          "application_signals": {
+            "hosted_in": "${cluster_name}"
+          },
+          "kubernetes": {
+            "cluster_name": "${cluster_name}",
+            "enhanced_container_insights": true
+          }
+        }
+      },
+      "metrics": {
+        "namespace": "CWAgent",
+        "append_dimensions": {
+          "ClusterName": "${cluster_name}",
+          "InstanceId": "$${aws:InstanceId}",
+          "NodeName": "$${HOSTNAME}"
+        },
+        "metrics_collected": {
+          "mem": {
+            "measurement": ["mem_used_percent"]
+          },
+          "disk": {
+            "measurement": ["used_percent"],
+            "resources": ["/"]
+          }
+        }
+      },
+      "traces": {
+        "traces_collected": {
+          "application_signals": {}
+        }
+      }
+    }

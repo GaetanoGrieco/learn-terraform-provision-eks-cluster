@@ -1,24 +1,21 @@
 ############################################
 # CloudWatch Agent Installation & Configuration
-# via SSM Associations (Opzione B)
+# via SSM Associations (Opzione B) — CORRETTO
 ############################################
 
 # INSTALLA il pacchetto AmazonCloudWatchAgent su tutti i nodi EKS
- resource "aws_ssm_association" "cwagent_install" {
+resource "aws_ssm_association" "cwagent_install" {
   name = "AWS-ConfigureAWSPackage"
 
   parameters = {
-    action = "Install"                  # deve essere stringa
-    name   = "AmazonCloudWatchAgent"    # nome del package
+    action = "Install"               # deve essere stringa
+    name   = "AmazonCloudWatchAgent" # nome del package
   }
 
-  # Il target sono le EC2 dei node groups EKS
+  # Target basato sul TAG corretto del nodegroup
   targets {
     key    = "tag:eks.amazonaws.com/nodegroup"
-    values = [
-      "node-group-1",
-      "node-group-2"
-    ]
+    values = local.node_group_names
   }
 }
 
@@ -40,10 +37,7 @@ resource "aws_ssm_association" "cwagent_configure" {
 
   targets {
     key    = "tag:eks.amazonaws.com/nodegroup"
-    values = [
-      "node-group-1",
-      "node-group-2"
-    ]
+    values = local.node_group_names
   }
 
   depends_on = [

@@ -1,10 +1,13 @@
 ############################################
-# Parametro SSM per configurazione CloudWatch Agent
+# Parametro SSM per configurazione CloudWatch Agent (Linux)
 ############################################
 
 resource "aws_ssm_parameter" "cwagent_config_linux" {
-  name  = "/AmazonCloudWatch/linux"
-  type  = "String"
+  name        = "/AmazonCloudWatch/linux"
+  description = "Configurazione CloudWatch Agent per Linux"
+  type        = "String"             # oppure "SecureString" se vuoi cifrare
+  tier        = "Standard"           # o "Advanced" se serve >4KB
+
   value = <<EOF
 {
   "agent": {
@@ -28,4 +31,9 @@ resource "aws_ssm_parameter" "cwagent_config_linux" {
   }
 }
 EOF
+
+  tags = {
+    Application = "CloudWatchAgent"
+    OS          = "Linux"
+  }
 }
